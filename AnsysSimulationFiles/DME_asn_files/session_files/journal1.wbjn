@@ -1,0 +1,43 @@
+# encoding: utf-8
+# 2026 R1
+SetScriptVersion(Version="26.1.174")
+template1 = GetTemplate(
+    TemplateName="Static Structural",
+    Solver="ANSYS")
+system1 = template1.CreateSystem()
+geometry1 = system1.GetContainer(ComponentName="Geometry")
+geometry1.Edit(IsDiscoveryGeometry=True)
+geometry1.Exit()
+geometry1.Edit(IsDiscoveryGeometry=True)
+modelComponent1 = system1.GetComponent(Name="Model")
+modelComponent1.Refresh()
+model1 = system1.GetContainer(ComponentName="Model")
+model1.Edit()
+Save(Overwrite=True)
+engineeringData1 = system1.GetContainer(ComponentName="Engineering Data")
+material1 = engineeringData1.GetMaterial(Name="Structural Steel")
+matlProp1 = material1.GetProperty(Name="Tensile Yield Strength")
+matlProp1.SetVariableProperty(
+    VariableName="Tensile Yield Strength",
+    Property="Unit",
+    Value="MPa")
+matlProp1.SetData(
+    Variables=["Tensile Yield Strength"],
+    Values=[["250 [MPa]"]])
+matlProp2 = material1.GetProperty(Name="Compressive Yield Strength")
+matlProp2.SetVariableProperty(
+    VariableName="Compressive Yield Strength",
+    Property="Unit",
+    Value="MPa")
+matlProp2.SetData(
+    Variables=["Compressive Yield Strength"],
+    Values=[["250 [MPa]"]])
+matlProp3 = material1.GetProperty(Name="Tensile Ultimate Strength")
+matlProp3.SetVariableProperty(
+    VariableName="Tensile Ultimate Strength",
+    Property="Unit",
+    Value="MPa")
+matlProp3.SetData(
+    Variables=["Tensile Ultimate Strength"],
+    Values=[["460 [MPa]"]])
+Save(Overwrite=True)
