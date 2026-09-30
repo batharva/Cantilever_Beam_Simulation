@@ -86,7 +86,7 @@ If the geometry does not show up, right-click **Geometry → Import/Refresh** an
 
 To skip running the solver, watch the full walkthrough:
 
-[![ANSYS Simulation Video](https://img.youtube.com/vi/VIDEO_ID/hqdefault.jpg](https://youtu.be/-R6-BGfNlug)
+[![ANSYS Simulation Video]](https://youtu.be/-R6-BGfNlug)
 
 ## Hand calculation (summary)
 
