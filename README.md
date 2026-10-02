@@ -1,102 +1,217 @@
-"""
-Cantilever I-beam under trapezoidal load  --  DME Assignment, Problem 14
-Analytical verification of the hand calculation + comparison with ANSYS.
+# Cantilever I-Beam Under Trapezoidal Load: Safety Factor
 
-Run:  python cantilever_calc.py
-Needs: Python 3.8+ (standard library only)
+**DME Assignment, Problem 14**: analytical hand calculation vs. **ANSYS Mechanical 2026 R1** (Static Structural).
 
-Coordinate: x measured from the FIXED end B (x = 0) to the FREE end A (x = L).
-Load intensity: w(x) = w_B + (w_A - w_B) * x / L   (18 -> 12 kN/m)
-"""
+A 3 m cantilever I-beam carries a linearly varying (trapezoidal) distributed load. The aim is to find the maximum stress, maximum shear stress, safety factor and tip deflection, and to compare the hand calculation with the FEA result.
 
-# ----------------------------------------------------------------- inputs
-L = 3.0                      # m
-w_A, w_B = 12e3, 18e3        # N/m  (free end, fixed end)
-bf, tf = 0.250, 0.020        # flange width, thickness (m)
-tw = 0.020                   # web thickness (m)
-H = 0.340                    # overall depth (m)
-E = 200e9                    # Pa  (ANSYS structural steel)
-rho, g = 7850.0, 9.81        # kg/m3, m/s2  (ANSYS structural steel)
-sigma_y = 250e6              # Pa
+---
 
-# ANSYS results (from your screenshots)
-ansys = {"vm_MPa": 40.58, "tau_max_MPa": 21.14, "n": 6.16, "defl_mm": 2.42}
+## Problem Statement
 
-# ------------------------------------------------------- section properties
-hw = H - 2 * tf                                   # web clear height
-I = (bf * H**3 - (bf - tw) * hw**3) / 12          # m^4  (box subtraction)
-y = H / 2
-A = 2 * bf * tf + hw * tw
-# first moment of area about NA for the half section (for web shear)
-Q = bf * tf * (H / 2 - tf / 2) + tw * (hw / 2) * (hw / 4)
+A **3 m cantilever I-beam** of ductile structural steel is fixed at the wall at end **B** and free at end **A**. It carries a trapezoidal load of **12 kN/m at the free end A** rising to **18 kN/m at the fixed end B**.
 
-# ------------------------------------------------------- load resultants
-w_uni = w_A                      # uniform part
-w_tri = w_B - w_A                # triangular part, max at the wall
+| Parameter | Value |
+|---|---:|
+| Beam length, L | 3 m |
+| Load at free end A | 12 kN/m |
+| Load at fixed end B | 18 kN/m |
+| Flanges | 250 × 20 mm |
+| Web thickness | 20 mm |
+| Overall depth | 340 mm |
+| Material | Structural steel |
+| Yield strength, σ_yt | 250 MPa |
+| Young's modulus, E | 200 GPa |
+| Analysis | Static Structural |
+| Software | ANSYS Mechanical 2026 R1 |
 
-W1 = w_uni * L                   # N, acts at L/2 from wall
-W2 = 0.5 * w_tri * L             # N, acts at L/3 from wall
-V = W1 + W2
-M = W1 * L / 2 + W2 * L / 3
+---
 
-# self-weight (ANSYS applies Standard Earth Gravity by default!)
-w_sw = rho * g * A
-V_sw = w_sw * L
-M_sw = w_sw * L**2 / 2
+## Repository Structure
 
-# ------------------------------------------------------------- stresses
-sigma = M * y / I
-tau_web_na = V * Q / (I * tw)            # transverse shear at NA
-tau_max_bend = sigma / 2                 # max shear from uniaxial bending (Mohr)
-n = sigma_y / sigma
+```text
+Cantilever_Beam_Simulation/
+├── AnsysSimulationFiles/              # ANSYS Workbench project
+├── HandWritten/                       # Handwritten calculation
+├── SOLID_MODEL/                       # CAD model of the I-beam
+├── Simulation_Video/                  # Screen recording of the simulation
+├── Imgs/                              # Result images used in this README
+├── cantilever_calc.py                 # Python check of the hand calculation
+├── Problem14_Handwritten_vs_ANSYS.pptx
+└── README.md
+```
 
-sigma_sw = (M + M_sw) * y / I
-n_sw = sigma_y / sigma_sw
+---
 
-# ------------------------------------------------------------ deflection
-EI = E * I
-d_uni = w_uni * L**4 / (8 * EI)
-d_tri = 11 * w_tri * L**4 / (120 * EI)   # triangle, zero at tip, max at wall
-d_sw = w_sw * L**4 / (8 * EI)
-delta = d_uni + d_tri
+## Load Modelling in ANSYS
 
+The trapezoidal load is applied as a **tabular pressure** on the 250 mm wide top face:
 
-def pct(a, b):
-    return (a - b) / b * 100
+$$p = \frac{w}{b}, \qquad b = 0.25\ \text{m}$$
 
+$$p_A = \frac{12\,000}{0.25} = 48\ \text{kPa}, \qquad p_B = \frac{18\,000}{0.25} = 72\ \text{kPa}$$
 
-# ---------------------------------------------------------------- output
-print("=== SECTION ===")
-print(f"I  = {I:.4e} m^4   (hand calc: 3.0133e-04)")
-print(f"A  = {A*1e4:.1f} cm^2, Q(NA) = {Q:.4e} m^3")
+The pressure varies linearly from **48 kPa (free end A) to 72 kPa (fixed end B)**.
 
-print("\n=== LOADS (about fixed end B) ===")
-print(f"W1 = {W1/1e3:.1f} kN at {L/2:.2f} m,  W2 = {W2/1e3:.1f} kN at {L/3:.2f} m")
-print(f"V_B = {V/1e3:.1f} kN,  M_B = {M/1e3:.1f} kN.m")
-print(f"Self-weight: {w_sw/1e3:.3f} kN/m -> +{M_sw/1e3:.2f} kN.m")
+---
 
-print("\n=== ANALYTICAL RESULTS ===")
-print(f"sigma_max (applied load only)  = {sigma/1e6:.2f} MPa -> n = {n:.2f}")
-print(f"sigma_max (with self-weight)   = {sigma_sw/1e6:.2f} MPa -> n = {n_sw:.2f}")
-print(f"tau_max (bending state, s/2)   = {tau_max_bend/1e6:.2f} MPa")
-print(f"tau at NA (web, VQ/Ib)         = {tau_web_na/1e6:.2f} MPa")
-print(f"tip deflection (load only)     = {delta*1e3:.2f} mm")
-print(f"   uniform {d_uni*1e3:.2f} + triangular {d_tri*1e3:.2f}; self-weight adds {d_sw*1e3:.2f}")
+## Hand Calculation
 
-print("\n=== HAND vs ANSYS ===")
-rows = [
-    ("von Mises [MPa]", sigma / 1e6, ansys["vm_MPa"]),
-    ("von Mises + self-wt [MPa]", sigma_sw / 1e6, ansys["vm_MPa"]),
-    ("Max shear [MPa]", tau_max_bend / 1e6, ansys["tau_max_MPa"]),
-    ("Safety factor", n, ansys["n"]),
-    ("Deflection [mm]", delta * 1e3, ansys["defl_mm"]),
-]
-print(f"{'Quantity':28s}{'Hand':>9s}{'ANSYS':>9s}{'ANSYS vs hand':>16s}")
-for name, h, a in rows:
-    print(f"{name:28s}{h:9.2f}{a:9.2f}{pct(a, h):+15.1f}%")
+### 1. Load resultants (about the fixed end B)
 
-# ------------------------------------------------------------ sanity checks
-assert abs(I - 3.0133e-4) < 1e-7, "I differs from hand calc"
-assert abs(M - 63e3) < 1, "M_B differs from hand calc"
-assert abs(sigma / 1e6 - 35.5) < 0.1, "sigma differs from hand calc"
-print("\nAll hand-calc checks passed.")
+The trapezoid splits into a uniform part (12 kN/m) and a triangular part (0 at A to 6 kN/m at B).
+
+$$W_1 = 12(3) = 36\ \text{kN} \quad \text{at } 1.5\ \text{m from B}$$
+
+$$W_2 = \tfrac{1}{2}(6)(3) = 9\ \text{kN} \quad \text{at } 1.0\ \text{m from B}\ (L/3)$$
+
+$$V_B = 36 + 9 = 45\ \text{kN}$$
+
+$$M_B = 36(1.5) + 9(1) = \mathbf{63\ kN\cdot m}$$
+
+### 2. Section properties
+
+Flanges plus web (equivalent to the outer rectangle minus the two side voids):
+
+$$I_{zz} = \frac{250(340)^3 - 230(300)^3}{12} = 3.0133\times10^{8}\ \text{mm}^4 = 3.0133\times10^{-4}\ \text{m}^4$$
+
+$$y_{\max} = 170\ \text{mm}$$
+
+### 3. Maximum bending stress
+
+$$\sigma_{\max} = \frac{M_B\,y}{I} = \frac{(63\times10^{3})(0.17)}{3.0133\times10^{-4}} \approx \mathbf{35.5\ MPa}$$
+
+### 4. Safety factor
+
+At the extreme fibre the state is uniaxial, so σ_vm = σ:
+
+$$n = \frac{\sigma_{yt}}{\sigma_{vm}} = \frac{250}{35.5} \approx \mathbf{7.03}$$
+
+### 5. Maximum shear stress
+
+From the Mohr circle of the uniaxial bending state:
+
+$$\tau_{\max} = \frac{\sigma_{\max}}{2} \approx \mathbf{17.8\ MPa}$$
+
+The transverse shear in the web at the neutral axis is much lower:
+
+$$\tau_{NA} = \frac{V\,Q}{I\,t_w} = \frac{(45\times10^3)(1.025\times10^{-3})}{(3.0133\times10^{-4})(0.02)} \approx 7.65\ \text{MPa}$$
+
+### 6. Tip deflection (Euler-Bernoulli)
+
+$$\delta_{\text{uniform}} = \frac{wL^4}{8EI} = 2.02\ \text{mm}, \qquad \delta_{\text{triangular}} = \frac{11\,w_0L^4}{120\,EI} = 0.74\ \text{mm}$$
+
+$$\delta_{\text{tip}} \approx \mathbf{2.76\ mm}$$
+
+### 7. Effect of self-weight
+
+ANSYS applies **Standard Earth Gravity** by default, so the beam's own weight is included in the FEA but not in the basic hand calculation above.
+
+$$A = 160\ \text{cm}^2, \quad w_{sw} = \rho g A = 7850(9.81)(0.016) \approx 1.23\ \text{kN/m}$$
+
+$$M_{sw} = \frac{w_{sw}L^2}{2} \approx 5.5\ \text{kN·m}$$
+
+$$\sigma_{\max,\,\text{with self-weight}} = \frac{(63 + 5.5)\times10^{3}(0.17)}{3.0133\times10^{-4}} \approx \mathbf{38.7\ MPa}, \qquad n \approx 6.46$$
+
+---
+
+## ANSYS Simulation
+
+**Workflow:** Geometry → Material assignment → Fixed support at B → Tabular pressure on top face → Mesh → Solve → Post-processing
+
+- **Boundary condition:** end face at B fully fixed.
+- **Load:** linearly varying pressure on the top face, 48 kPa at A to 72 kPa at B.
+- **Material:** Structural Steel, σ_yt = 250 MPa.
+
+---
+
+## Simulation Results
+
+### Equivalent (von Mises) stress
+
+<img src="./Imgs/Equivalent_Stress.jpg" alt="ANSYS Equivalent von Mises Stress" width="850">
+
+**Figure 1:** Equivalent von Mises stress. The maximum, **σ_vm ≈ 40.58 MPa**, occurs near the fixed end where the bending moment is greatest.
+
+### Total deformation
+
+<img src="./Imgs/Total_Deformation.jpg" alt="ANSYS Total Deformation" width="850">
+
+**Figure 2:** Total deformation. The maximum, **δ_max ≈ 2.42 mm**, is at the free end, as expected for a cantilever.
+
+### Maximum shear and principal stress
+
+<table>
+<tr>
+<td align="center">
+<img src="./Imgs/Max_Shear_Stress.jpg" width="450">
+<br>
+<b>Figure 3: Maximum shear stress</b>
+</td>
+<td align="center">
+<img src="./Imgs/Max_Principal_Stress.jpg" width="450">
+<br>
+<b>Figure 4: Maximum principal stress</b>
+</td>
+</tr>
+</table>
+
+Maximum shear stress from ANSYS: **τ_max ≈ 21.14 MPa**.
+
+### Safety factor
+
+<img src="./Imgs/Safety_Factor.jpg" alt="ANSYS Safety Factor" width="850">
+
+**Figure 5:** Safety factor distribution. Minimum safety factor from ANSYS: **n ≈ 6.16**.
+
+---
+
+## Hand Calculation vs. ANSYS
+
+| Quantity | Hand (load only) | Hand (+ self-weight) | ANSYS |
+|---|---:|---:|---:|
+| Max bending / von Mises stress | 35.5 MPa | 38.7 MPa | 40.58 MPa |
+| Max shear stress (σ/2) | 17.8 MPa | 19.3 MPa | 21.14 MPa |
+| Safety factor | 7.03 | 6.46 | 6.16 |
+| Tip deflection | 2.76 mm | 2.97 mm | 2.42 mm |
+| Critical region | Fixed end | Fixed end | Fixed end |
+
+**Stress:** ANSYS is 14.3% above the load-only hand value, but only about 5% above the hand value once self-weight is included. Most of the gap is therefore self-weight.
+
+**Safety factor:** both methods give n well above 1, so the beam is safe with a large margin (about 6 to 7).
+
+---
+
+## Why Do the Results Differ?
+
+1. **Self-weight.** ANSYS includes gravity by default. This adds about 5.5 kN·m at the root and accounts for most of the stress difference.
+2. **Fixed-support singularity.** A perfectly rigid support in a 3D solid model creates a stress singularity at the wall. The peak nodal stress there depends on mesh size and keeps rising as the mesh is refined. By Saint-Venant's principle, stress should be read about one beam depth (about 340 mm) away from the wall to compare fairly with beam theory.
+3. **3D vs. beam theory.** The ANSYS model solves the full solid, including local effects, flange behaviour and the Poisson effect. Euler-Bernoulli theory assumes plane sections remain plane.
+4. **Deflection difference.** The ANSYS tip deflection (2.42 mm) is *lower* than beam theory (2.76 mm). The 3D fixed face restrains warping and lateral contraction at the root, which makes the real solid stiffer than an ideal cantilever.
+5. **Load application.** The load is applied as pressure over a finite surface rather than as an ideal line load.
+6. **Discretisation.** Results depend on element type, size and mesh quality.
+
+---
+
+## Run the Python Check
+
+The script reproduces the hand calculation and prints the comparison with ANSYS. It uses only the standard library.
+
+```bash
+python cantilever_calc.py
+```
+
+---
+
+## Conclusion
+
+- Hand calculation: σ_max ≈ 35.5 MPa, n ≈ 7.03.
+- ANSYS: σ_vm ≈ 40.58 MPa, n ≈ 6.16, δ_max ≈ 2.42 mm.
+- The two methods agree on the critical location (fixed end) and on the conclusion that the beam is safe with a large margin.
+- The remaining stress difference is explained mainly by self-weight, plus the local effects at the fixed support.
+
+---
+
+## Tools
+
+- ANSYS Mechanical 2026 R1 (Workbench, Static Structural)
+- Python 3 (verification script)
