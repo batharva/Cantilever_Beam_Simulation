@@ -134,8 +134,6 @@ The full hand calculation is in the [`HandWritten/`](./HandWritten) folder.
 
 ---
 
----
-
 ## Conclusion
 
 - Hand calculation: σ_max ≈ 35.5 MPa, n ≈ 7.03.
