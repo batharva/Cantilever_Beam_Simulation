@@ -54,66 +54,6 @@ The pressure varies linearly from **48 kPa (free end A) to 72 kPa (fixed end B)*
 
 ---
 
-## Hand Calculation
-
-### 1. Load resultants (about the fixed end B)
-
-The trapezoid splits into a uniform part (12 kN/m) and a triangular part (0 at A to 6 kN/m at B).
-
-$$W_1 = 12(3) = 36\ \text{kN} \quad \text{at } 1.5\ \text{m from B}$$
-
-$$W_2 = \tfrac{1}{2}(6)(3) = 9\ \text{kN} \quad \text{at } 1.0\ \text{m from B}\ (L/3)$$
-
-$$V_B = 36 + 9 = 45\ \text{kN}$$
-
-$$M_B = 36(1.5) + 9(1) = \mathbf{63\ kN\cdot m}$$
-
-### 2. Section properties
-
-Flanges plus web (equivalent to the outer rectangle minus the two side voids):
-
-$$I_{zz} = \frac{250(340)^3 - 230(300)^3}{12} = 3.0133\times10^{8}\ \text{mm}^4 = 3.0133\times10^{-4}\ \text{m}^4$$
-
-$$y_{\max} = 170\ \text{mm}$$
-
-### 3. Maximum bending stress
-
-$$\sigma_{\max} = \frac{M_B\,y}{I} = \frac{(63\times10^{3})(0.17)}{3.0133\times10^{-4}} \approx \mathbf{35.5\ MPa}$$
-
-### 4. Safety factor
-
-At the extreme fibre the state is uniaxial, so σ_vm = σ:
-
-$$n = \frac{\sigma_{yt}}{\sigma_{vm}} = \frac{250}{35.5} \approx \mathbf{7.03}$$
-
-### 5. Maximum shear stress
-
-From the Mohr circle of the uniaxial bending state:
-
-$$\tau_{\max} = \frac{\sigma_{\max}}{2} \approx \mathbf{17.8\ MPa}$$
-
-The transverse shear in the web at the neutral axis is much lower:
-
-$$\tau_{NA} = \frac{V\,Q}{I\,t_w} = \frac{(45\times10^3)(1.025\times10^{-3})}{(3.0133\times10^{-4})(0.02)} \approx 7.65\ \text{MPa}$$
-
-### 6. Tip deflection (Euler-Bernoulli)
-
-$$\delta_{\text{uniform}} = \frac{wL^4}{8EI} = 2.02\ \text{mm}, \qquad \delta_{\text{triangular}} = \frac{11\,w_0L^4}{120\,EI} = 0.74\ \text{mm}$$
-
-$$\delta_{\text{tip}} \approx \mathbf{2.76\ mm}$$
-
-### 7. Effect of self-weight
-
-ANSYS applies **Standard Earth Gravity** by default, so the beam's own weight is included in the FEA but not in the basic hand calculation above.
-
-$$A = 160\ \text{cm}^2, \quad w_{sw} = \rho g A = 7850(9.81)(0.016) \approx 1.23\ \text{kN/m}$$
-
-$$M_{sw} = \frac{w_{sw}L^2}{2} \approx 5.5\ \text{kN·m}$$
-
-$$\sigma_{\max,\,\text{with self-weight}} = \frac{(63 + 5.5)\times10^{3}(0.17)}{3.0133\times10^{-4}} \approx \mathbf{38.7\ MPa}, \qquad n \approx 6.46$$
-
----
-
 ## ANSYS Simulation
 
 **Workflow:** Geometry → Material assignment → Fixed support at B → Tabular pressure on top face → Mesh → Solve → Post-processing
@@ -166,6 +106,8 @@ Maximum shear stress from ANSYS: **τ_max ≈ 21.14 MPa**.
 ---
 
 ## Hand Calculation vs. ANSYS
+
+The full hand calculation is in the [`HandWritten/`](./HandWritten) folder.
 
 | Quantity | Hand (load only) | Hand (+ self-weight) | ANSYS |
 |---|---:|---:|---:|
