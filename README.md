@@ -54,87 +54,9 @@ The pressure varies linearly from **48 kPa (free end A) to 72 kPa (fixed end B)*
 
 ---
 
-## Hand Calculation
 
-Taken from the handwritten solution in [`HandWritten/`](./HandWritten): find the critical point, then apply the von Mises and Tresca failure theories.
 
-### 1. Section properties
 
-$$I_{zz} = \frac{1}{12}(20)(300)^3 + 2\left[\frac{1}{12}(250)(20)^3 + (250)(20)(160)^2\right]$$
-
-$$I_{zz} = 3.0133\times10^{-4}\ \text{m}^4 = 3.0133\times10^{8}\ \text{mm}^4$$
-
-### 2. Free body diagram and bending moment at B
-
-The trapezoid splits into a uniform part (12 kN/m) and a triangular part (18 − 12 = 6 kN/m).
-
-$$F_1 = 12 \times 3 = 36\ \text{kN} \quad \text{(arm 1.5 m)}$$
-
-$$F_2 = \tfrac{1}{2}(6)(3) = 9\ \text{kN} \quad \text{(arm 2 m)}$$
-
-$$M_B = 12\times3\times1.5 + \tfrac{1}{2}\times6\times3\times2 = \mathbf{72\times10^{6}\ N\cdot mm}$$
-
-The bending moment is maximum at B because B is at the fixed end.
-
-### 3. Maximum shear force
-
-$$R_y = V_{\max} = 12\times3 + (0.5\times6\times3) = 45\times10^{3}\ \text{N}$$
-
-### 4. Stress at point B (y = h/2 = 170 mm = 0.17 m)
-
-$$\sigma_B = \frac{M_{\max}\,y}{I} = \frac{(72\times10^{6})(170)}{3.0133\times10^{8}} = \mathbf{40.62\ MPa}, \qquad \tau_B = 0$$
-
-### 5. Stress at point C (neutral axis, y = 0)
-
-$$\sigma_C = 0$$
-
-$$Q = (250\times20)(150+10) + (150\times20)(75) = 1.025\times10^{6}\ \text{mm}^3$$
-
-$$\tau_C = \frac{V_{\max}\,Q}{I\,t_w} = \frac{(45\times10^{3})(1.025\times10^{6})}{(3.0133\times10^{8})(20)} = \mathbf{7.65\ MPa}$$
-
-Since the stress at B is greater than at C, **the critical point is B**.
-
-### 6. Failure theories at the critical point B
-
-Principal stresses: σ₁ = 40.62 MPa, σ₂ = σ₃ = 0, with σ_yt = 250 MPa.
-
-**von Mises**
-
-$$\sigma_{vm} = \sqrt{\sigma_1^2 + \sigma_2^2 - \sigma_1\sigma_2} = 40.62\ \text{MPa}$$
-
-$$n = \frac{\sigma_{yt}}{\sigma_{vm}} = \frac{250}{40.62} = \mathbf{6.15}$$
-
-**Tresca (maximum shear stress)**
-
-$$\tau_{\max} = \frac{\sigma_1 - \sigma_2}{2} = \frac{40.62 - 0}{2} = \mathbf{20.31\ MPa}$$
-
-$$n = \frac{\sigma_{yt}}{2\,\tau_{\max}} = \frac{250}{40.62} = \mathbf{6.15}$$
-
----
-
-## Known Error in the Handwritten Solution
-
-> **Note:** the handwritten solution above uses a **2 m** moment arm for the triangular load component. This is incorrect.
-
-The triangular part of the load (6 kN/m) is **zero at the free end A and maximum at the fixed end B**. Its resultant (9 kN) therefore acts at **L/3 = 1 m** from the wall, not 2 m. A 2 m arm would correspond to a triangle that is maximum at the free end, which contradicts the problem figure.
-
-Corrected calculation:
-
-$$M_B = 36(1.5) + 9(1) = \mathbf{63\ kN\cdot m} \quad (\text{not } 72\ \text{kN·m})$$
-
-| Quantity | As submitted (2 m arm) | Corrected (1 m arm) |
-|---|---:|---:|
-| Bending moment at B | 72 kN·m | 63 kN·m |
-| Max bending / von Mises stress | 40.62 MPa | 35.54 MPa |
-| Max shear stress (Tresca) | 20.31 MPa | 17.77 MPa |
-| Safety factor | 6.15 | 7.03 |
-| Shear stress at C | 7.65 MPa | 7.65 MPa (unchanged) |
-
-The section properties, the shear force (45 kN) and the shear stress at C are not affected. The beam is safe in both cases.
-
-The closer agreement between the submitted hand values and ANSYS (40.62 vs. 40.58 MPa) should not be read as validation of the 72 kN·m moment. With the corrected moment, ANSYS is about 14% higher than the hand value. This difference comes from local effects at the fixed support, which depend on the mesh, and from the beam's self-weight, which ANSYS includes by default (about 1.2 kN/m) and the hand calculation does not.
-
----
 
 ## ANSYS Simulation
 
@@ -207,16 +129,6 @@ The hand calculation and ANSYS agree closely on stress and safety factor, and bo
 2. **3D vs. beam theory.** ANSYS solves the full solid, while Euler-Bernoulli theory assumes plane sections remain plane.
 3. **Load application.** The load is applied as pressure over a finite surface rather than as an ideal line load.
 4. **Discretisation.** Results depend on element type, size and mesh quality.
-
----
-
-## Run the Python Check
-
-The script reproduces the **corrected** hand calculation (1 m arm, M_B = 63 kN·m) and prints the comparison with ANSYS. It uses only the standard library.
-
-```bash
-python cantilever_calc.py
-```
 
 ---
 
