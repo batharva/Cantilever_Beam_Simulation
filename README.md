@@ -134,14 +134,6 @@ The full hand calculation is in the [`HandWritten/`](./HandWritten) folder.
 
 ---
 
-## Run the Python Check
-
-The script reproduces the hand calculation and prints the comparison with ANSYS. It uses only the standard library.
-
-```bash
-python cantilever_calc.py
-```
-
 ---
 
 ## Conclusion
