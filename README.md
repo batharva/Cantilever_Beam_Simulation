@@ -145,4 +145,3 @@ The hand calculation and ANSYS agree closely on stress and safety factor, and bo
 ## Tools
 
 - ANSYS Mechanical 2026 R1 (Workbench, Static Structural)
-- Python 3 (verification script)
